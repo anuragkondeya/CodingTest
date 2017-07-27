@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:background="@color/splashBG"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:textSize="128sp"
+        android:textColor="@android:color/white"
+        android:layout_width="wrap_content"
+        android:text="Y7"
+        android:layout_centerInParent="true"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView" />
+
+    <Button
+        android:id="@+id/closeApp"
+        android:background="@color/colorPrimaryDark"
+        android:text="@string/closeapp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView"
+        android:layout_centerHorizontal="true"
+        android:visibility="invisible"
+        android:layout_marginTop="29dp" />
+
+</RelativeLayout>
