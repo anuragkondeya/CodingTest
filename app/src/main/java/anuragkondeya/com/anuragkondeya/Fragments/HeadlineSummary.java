@@ -28,6 +28,7 @@ import anuragkondeya.com.anuragkondeya.Data.Story;
 import anuragkondeya.com.anuragkondeya.R;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnItemClick;
 import butterknife.Unbinder;
 
 
@@ -92,37 +93,33 @@ public class HeadlineSummary extends Fragment implements
      *
      * @return
      */
-    private AdapterView.OnItemClickListener storyItemClickListener() {
-        return new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //final ImageView imageView = (ImageView) view.findViewById(R.id.thumbnail);
-                Story story = mStoryList.get(position);
-                StoryView storyViewInstance = new StoryView();
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    storyViewInstance.setSharedElementEnterTransition(TransitionInflater.from(
-                            getActivity()).inflateTransition(R.transition.transition));
 
-                    storyViewInstance.setEnterTransition(TransitionInflater.from(
-                            getActivity()).inflateTransition(android.R.transition.fade));
+    @OnItemClick(R.id.headlineListView)
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        //final ImageView imageView = (ImageView) view.findViewById(R.id.thumbnail);
+        Story story = mStoryList.get(position);
+        StoryView storyViewInstance = new StoryView();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            storyViewInstance.setSharedElementEnterTransition(TransitionInflater.from(
+                    getActivity()).inflateTransition(R.transition.transition));
 
-                    storyViewInstance.setExitTransition(TransitionInflater.from(
-                            getActivity()).inflateTransition(android.R.transition.fade));
-                }
+            storyViewInstance.setEnterTransition(TransitionInflater.from(
+                    getActivity()).inflateTransition(android.R.transition.fade));
 
-                Bundle extras = new Bundle();
-                extras.putParcelable(Constants.KEY_STORY_OBEJCT, story);
-                storyViewInstance.setArguments(extras);
-                getFragmentManager()
-                        .beginTransaction()
-                        //.addSharedElement(imageView, ViewCompat.getTransitionName(imageView))
-                        .replace(R.id.headlines_frame_container, storyViewInstance)
-                        .addToBackStack(null)
-                        .commit();
+            storyViewInstance.setExitTransition(TransitionInflater.from(
+                    getActivity()).inflateTransition(android.R.transition.fade));
+        }
 
+        Bundle extras = new Bundle();
+        extras.putParcelable(Constants.KEY_STORY_OBEJCT, story);
+        storyViewInstance.setArguments(extras);
+        getFragmentManager()
+                .beginTransaction()
+                //.addSharedElement(imageView, ViewCompat.getTransitionName(imageView))
+                .replace(R.id.headlines_frame_container, storyViewInstance)
+                .addToBackStack(null)
+                .commit();
 
-            }
-        };
     }
 
     @Override
@@ -161,10 +158,11 @@ public class HeadlineSummary extends Fragment implements
 
     /**
      * User it stuck in case of no network. Hence proving a way out.
+     *
      * @return
      */
-    private View.OnClickListener closeButonOnClickListener(){
-        return new View.OnClickListener(){
+    private View.OnClickListener closeButonOnClickListener() {
+        return new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -177,7 +175,7 @@ public class HeadlineSummary extends Fragment implements
     @Override
     public void onResume() {
         super.onResume();
-        if(!isNetworkConnected()){
+        if (!isNetworkConnected()) {
             //Button to close app, (can implement better solution)
             closeApp.setVisibility(View.VISIBLE);
             closeApp.setFocusable(true);
@@ -188,7 +186,7 @@ public class HeadlineSummary extends Fragment implements
             mStoryList = new ArrayList<>();
             mSplash.setVisibility(View.VISIBLE);
         }
-        if(mStoryList.size()>0)
+        if (mStoryList.size() > 0)
             mSplash.setVisibility(View.GONE);
         mLoaderCallback = this;
         mProgressBar.setVisibility(View.INVISIBLE);
@@ -207,7 +205,7 @@ public class HeadlineSummary extends Fragment implements
                 mCurrentPosition = firstVisibleItem;
             }
         });
-        mHeadLineListView.setOnItemClickListener(storyItemClickListener());
+        // mHeadLineListView.setOnItemClickListener(storyItemClickListener());
         mAdapter.setLoadDataNotifierLstener(this);
         getLoaderManager().initLoader(LOADER_ID, null, mLoaderCallback);
 
@@ -232,8 +230,8 @@ public class HeadlineSummary extends Fragment implements
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-               if(mSplash.isShown())
-                   mSplash.setVisibility(View.GONE);
+                if (mSplash.isShown())
+                    mSplash.setVisibility(View.GONE);
                 mStoryList.addAll(data);
                 mAdapter.notifyDataSetChanged();
                 if (null != mProgressBar)
