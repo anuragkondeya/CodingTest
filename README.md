@@ -1,8 +1,5 @@
 # CodingTest
 
-# CodingTest
-
-
 ## Notes
 
 1. The code is making use of List view. The view holder pattern is adopted for saving findViewById calls and better performance.
