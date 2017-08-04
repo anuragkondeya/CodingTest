@@ -14,14 +14,26 @@ import android.widget.TextView;
 import anuragkondeya.com.anuragkondeya.Constants;
 import anuragkondeya.com.anuragkondeya.Data.Story;
 import anuragkondeya.com.anuragkondeya.R;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 /**
  * Fragments to display individual story
  */
 public class StoryView extends Fragment {
 
+    @BindView(R.id.storyImage)
+    ImageView image;
+    @BindView(R.id.storyBody)
+    TextView body;
+    @BindView(R.id.headlineStoryView)
+    CollapsingToolbarLayout headline;
     private Story mStory = null;
-
+    /**
+     * BUtterknife unbinder instance
+     */
+    private Unbinder unbinder;
     public StoryView() {
         // Required empty public constructor
     }
@@ -40,6 +52,7 @@ public class StoryView extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_story, container, false);
+        unbinder = ButterKnife.bind(this, view);
         return view;
     }
 
@@ -60,15 +73,17 @@ public class StoryView extends Fragment {
      */
     public void updateStoryItem(Story story) {
         if (null != story) {
-            View view = getView();
-            ImageView image = (ImageView) view.findViewById(R.id.storyImage);
-            CollapsingToolbarLayout headline = (CollapsingToolbarLayout) view.findViewById(R.id.headlineStoryView);
-            TextView body = (TextView) view.findViewById(R.id.storyBody);
             BitmapCache instance = BitmapCache.getInstance();
             image.setImageBitmap(instance.getBitmapFromMemCache(story.id));
             headline.setTitle(story.headline);
             body.setText(story.body);
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder.unbind();
     }
 
 

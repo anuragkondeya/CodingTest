@@ -21,6 +21,8 @@ import java.util.List;
 
 import anuragkondeya.com.anuragkondeya.Data.Story;
 import anuragkondeya.com.anuragkondeya.R;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 /**
  * Created by anuragkondeya on 26/7/17.
@@ -43,15 +45,6 @@ public class HeadLineListAdaper extends ArrayAdapter<Story> {
      * Data notifier notifier loader to fetch data when user reaches last of the list
      */
     private LoadDataNotifier mLoadDataNotifier = null;
-
-    /**
-     * View holder for recycling views of list items
-     */
-    private class ViewHolder {
-        TextView headlineTextView;
-        ImageView thumbnailImageView;
-    }
-
 
     /**
      * List view adapter instance
@@ -81,20 +74,16 @@ public class HeadLineListAdaper extends ArrayAdapter<Story> {
                 mLoadDataNotifier.notifyLoadData();
         }
         ViewHolder viewHolder = null;
-        View view = null;
+        //View view = null;
         /**
          * Recycling views here as find view by id calls are costly
          */
         if (null == convertView) {
-            viewHolder = new ViewHolder();
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.headline_cell_view, parent, false);
-            viewHolder.headlineTextView = (TextView) convertView.findViewById(R.id.headlineTextViewInList);
-            viewHolder.thumbnailImageView = (ImageView) convertView.findViewById(R.id.thumbnail);
-            view = convertView;
+            viewHolder = new ViewHolder(convertView);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
-            view = convertView;
         }
         viewHolder.headlineTextView.setText(story.headline);
         final ImageView thumbnailView = viewHolder.thumbnailImageView;
@@ -130,6 +119,20 @@ public class HeadLineListAdaper extends ArrayAdapter<Story> {
             mRequestQueue = Volley.newRequestQueue(getContext());
             mRequestQueue.add(imageRequest);
         }
-        return view;
+        return convertView;
+    }
+
+    /**
+     * View holder for recycling views of list items
+     */
+    static class ViewHolder {
+        @BindView(R.id.headlineTextViewInList)
+        TextView headlineTextView;
+        @BindView(R.id.thumbnail)
+        ImageView thumbnailImageView;
+
+        public ViewHolder(View view) {
+            ButterKnife.bind(this, view);
+        }
     }
 }
