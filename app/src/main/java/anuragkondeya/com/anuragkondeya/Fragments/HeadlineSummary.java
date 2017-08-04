@@ -28,6 +28,7 @@ import anuragkondeya.com.anuragkondeya.Data.Story;
 import anuragkondeya.com.anuragkondeya.R;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.Unbinder;
 
@@ -155,18 +156,27 @@ public class HeadlineSummary extends Fragment implements
         }
     }
 
-
     /**
      * User it stuck in case of no network. Hence proving a way out.
      *
      * @return
      */
-    private View.OnClickListener closeButonOnClickListener() {
-        return new View.OnClickListener() {
+    @OnClick(R.id.closeApp)
+    public void onClick(View v) {
+        getActivity().finish();
+    }
+
+
+    private AbsListView.OnScrollListener onScrollListener() {
+        return new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+
+            }
 
             @Override
-            public void onClick(View v) {
-                getActivity().finish();
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                mCurrentPosition = firstVisibleItem;
             }
         };
     }
@@ -179,7 +189,6 @@ public class HeadlineSummary extends Fragment implements
             //Button to close app, (can implement better solution)
             closeApp.setVisibility(View.VISIBLE);
             closeApp.setFocusable(true);
-            closeApp.setOnClickListener(closeButonOnClickListener());
             Toast.makeText(getActivity(), R.string.network_toast, Toast.LENGTH_SHORT).show();
         }
         if (null == mStoryList) {
@@ -194,17 +203,7 @@ public class HeadlineSummary extends Fragment implements
         mHeadLineListView.setAdapter(mAdapter);
         mHeadLineListView.setSelection(mCurrentPosition);
 
-        mHeadLineListView.setOnScrollListener(new AbsListView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(AbsListView view, int scrollState) {
-
-            }
-
-            @Override
-            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                mCurrentPosition = firstVisibleItem;
-            }
-        });
+        mHeadLineListView.setOnScrollListener(onScrollListener());
         // mHeadLineListView.setOnItemClickListener(storyItemClickListener());
         mAdapter.setLoadDataNotifierLstener(this);
         getLoaderManager().initLoader(LOADER_ID, null, mLoaderCallback);
