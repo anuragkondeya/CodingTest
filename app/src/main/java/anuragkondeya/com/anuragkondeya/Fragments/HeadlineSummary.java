@@ -6,10 +6,9 @@ import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
 import android.support.v4.view.ViewCompat;
 import android.transition.TransitionInflater;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import anuragkondeya.com.anuragkondeya.Constants;
-import anuragkondeya.com.anuragkondeya.Data.StoriesLoader;
+import anuragkondeya.com.anuragkondeya.Data.Client;
 import anuragkondeya.com.anuragkondeya.Data.Story;
 import anuragkondeya.com.anuragkondeya.R;
 import butterknife.BindView;
@@ -33,10 +32,16 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import butterknife.Unbinder;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
+import rx.Observable;
+import rx.Observer;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 
-public class HeadlineSummary extends Fragment implements
-        LoaderManager.LoaderCallbacks<List<Story>>, LoadDataNotifier {
+public class HeadlineSummary extends Fragment implements LoadDataNotifier {
 
     /**
      * List to store story instances which contains data fetched from the server
@@ -46,10 +51,7 @@ public class HeadlineSummary extends Fragment implements
      * Current scroll position
      */
     static int mCurrentPosition = 0;
-    /**
-     * Loader id
-     */
-    private final int LOADER_ID = 0;
+
     private final String KEY_LAST_POSITION = "key_last_position";
     /**
      * Instance of the listview
@@ -72,16 +74,13 @@ public class HeadlineSummary extends Fragment implements
      * Listview adapter
      */
     HeadLineListAdaper mAdapter = null;
-
     /**
-     * loader instance
+     * Story item click listner called when a story item is clicked by the user to display the complete story
+     *
+     * @return
      */
-    StoriesLoader mStoriesLoader = null;
 
-    /**
-     * loader callback instance
-     */
-    LoaderManager.LoaderCallbacks<List<Story>> mLoaderCallback;
+    String BASEURL = "https://aboutdoor.info/";
     /**
      * BUtterknife unbinder instance
      */
@@ -90,12 +89,6 @@ public class HeadlineSummary extends Fragment implements
      * offset for pagination
      */
     private int mOffset = 0;
-
-    /**
-     * Story item click listner called when a story item is clicked by the user to display the complete story
-     *
-     * @return
-     */
 
     @OnItemClick(R.id.headlineListView)
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -187,6 +180,42 @@ public class HeadlineSummary extends Fragment implements
     }
 
 
+    public void getData() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create())
+                .baseUrl(BASEURL)
+                .build();
+
+        Client client = retrofit.create(Client.class);
+        Observable<List<Story>> newsItemObservable = client.getNewsData(mOffset);
+        newsItemObservable.subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<List<Story>>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e("Anurag", "Error " + e);
+                    }
+
+                    @Override
+                    public void onNext(List<Story> newsItems) {
+                        if (mSplash.isShown())
+                            mSplash.setVisibility(View.GONE);
+                        mStoryList.addAll(newsItems);
+                        mAdapter.notifyDataSetChanged();
+                        if (null != mProgressBar)
+                            mProgressBar.setVisibility(View.INVISIBLE);
+
+                    }
+                });
+
+    }
+
     @Override
     public void onResume() {
         super.onResume();
@@ -202,65 +231,13 @@ public class HeadlineSummary extends Fragment implements
         }
         if (mStoryList.size() > 0)
             mSplash.setVisibility(View.GONE);
-        mLoaderCallback = this;
         mProgressBar.setVisibility(View.INVISIBLE);
         mAdapter = new HeadLineListAdaper(getContext(), mStoryList);
         mHeadLineListView.setAdapter(mAdapter);
         mHeadLineListView.setSelection(mCurrentPosition);
-
         mHeadLineListView.setOnScrollListener(onScrollListener());
-        // mHeadLineListView.setOnItemClickListener(storyItemClickListener());
         mAdapter.setLoadDataNotifierLstener(this);
-        getLoaderManager().initLoader(LOADER_ID, null, mLoaderCallback);
-
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (null != mStoriesLoader)
-            mStoriesLoader.onStop();
-    }
-
-
-    @Override
-    public Loader onCreateLoader(int id, Bundle args) {
-        mStoriesLoader = new StoriesLoader(getActivity(), mOffset);
-        return mStoriesLoader;
-    }
-
-    @Override
-    public void onLoadFinished(Loader<List<Story>> loader, final List<Story> data) {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (mSplash.isShown())
-                    mSplash.setVisibility(View.GONE);
-                mStoryList.addAll(data);
-                mAdapter.notifyDataSetChanged();
-                if (null != mProgressBar)
-                    mProgressBar.setVisibility(View.INVISIBLE);
-
-            }
-        });
-    }
-
-    @Override
-    public void onLoaderReset(Loader loader) {
-
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        unbinder.unbind();
-    }
-
-    @Override
-    public void notifyLoadData() {
-        mOffset += 10;
-        getLoaderManager().restartLoader(LOADER_ID, null, mLoaderCallback);
-        mProgressBar.setVisibility(View.VISIBLE);
+        getData();
     }
 
     @Override
@@ -268,4 +245,11 @@ public class HeadlineSummary extends Fragment implements
         super.onDetach();
     }
 
+    @Override
+    public void notifyLoadData() {
+        if (null != mProgressBar)
+            mProgressBar.setVisibility(View.VISIBLE);
+        mOffset += 10;
+        getData();
+    }
 }

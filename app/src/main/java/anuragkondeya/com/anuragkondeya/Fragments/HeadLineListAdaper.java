@@ -10,7 +10,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.android.volley.RequestQueue;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
@@ -33,10 +32,6 @@ public class HeadLineListAdaper extends ArrayAdapter<Story> {
      */
     private List<Story> mStories;
 
-    /**
-     * Volley request queue instance
-     */
-    private RequestQueue mRequestQueue;
 
     /**
      * Data notifier notifier loader to fetch data when user reaches last of the list
@@ -45,6 +40,7 @@ public class HeadLineListAdaper extends ArrayAdapter<Story> {
 
     /**
      * List view adapter instance
+     *
      * @param context
      * @param stories
      */
@@ -55,6 +51,7 @@ public class HeadLineListAdaper extends ArrayAdapter<Story> {
 
     /**
      * Set data notfier callback
+     *
      * @param loadDataNotifier
      */
     public void setLoadDataNotifierLstener(LoadDataNotifier loadDataNotifier) {
@@ -66,7 +63,7 @@ public class HeadLineListAdaper extends ArrayAdapter<Story> {
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         final Story story = mStories.get(position);
         int lastPosition = mStories.size() - 1;
-        if (position == lastPosition) {
+        if (lastPosition - position == 5) {
             if (null != mLoadDataNotifier)
                 mLoadDataNotifier.notifyLoadData();
         }
