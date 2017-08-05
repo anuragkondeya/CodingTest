@@ -96,7 +96,7 @@ public class HeadLineListAdaper extends ArrayAdapter<Story> {
 
             // Can use glide here for better user experience
             ImageRequest imageRequest = new ImageRequest(
-                    story.imageURL,
+                    story.image,
                     new Response.Listener<Bitmap>() {
                         @Override
                         public void onResponse(Bitmap response) {

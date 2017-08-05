@@ -4,7 +4,6 @@ package anuragkondeya.com.anuragkondeya.Data;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.support.v4.content.Loader;
 import android.util.Log;
 
@@ -14,21 +13,11 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-
-import javax.net.ssl.HttpsURLConnection;
 
 import anuragkondeya.com.anuragkondeya.Constants;
 
@@ -38,17 +27,13 @@ import anuragkondeya.com.anuragkondeya.Constants;
  */
 public class StoriesLoader extends Loader<List<Story>> {
 
+    private static final String BASE_URL = "https://aboutdoor.info/news?index=";
     private final String TAG_VOLLEY = "volleyTag";
     private List<Story> mCachedStories = null;
-    private static final String BASE_URL = "https://aboutdoor.info/news?index=";
     private Context mAppContext;
     private int mOffset = 0;
 
-    private final String FIELD_ABSTRACT = "absract";
-    private final String FIELD_BODY = "body";
-    private final String FIELD_HEADLINE = "headline";
-    private final String FIELD_ID = "id";
-    private final String FIELD_IMAGE = "image";
+    private Gson gson;
 
     private RequestQueue mRequestQueue;
 
@@ -81,10 +66,7 @@ public class StoriesLoader extends Loader<List<Story>> {
             return false;
         else {
             NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-            if (null == networkInfo)
-                return false;
-            else
-                return true;
+            return null != networkInfo;
         }
     }
 
@@ -95,24 +77,9 @@ public class StoriesLoader extends Loader<List<Story>> {
      */
     private void processResult(String answer) {
         if (null != answer) {
-            try {
-                JSONArray jsonArray = new JSONArray(answer);
-                mCachedStories = new ArrayList<>();
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    Story story = new Story();
-                    JSONObject jsonObject = (JSONObject) jsonArray.get(i);
-                    //story.abstractText = jsonObject.getString(FIELD_ABSTRACT);
-                    story.body = jsonObject.getString(FIELD_BODY);
-                    story.headline = jsonObject.getString(FIELD_HEADLINE);
-                    story.id = jsonObject.getString(FIELD_ID);
-                    story.imageURL = jsonObject.getString(FIELD_IMAGE);
-                    mCachedStories.add(story);
-                    story = null;
-                }
-            } catch (JSONException e) {
-                //TODO throw error here
-                e.printStackTrace();
-            }
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            gson = gsonBuilder.create();
+            mCachedStories = Arrays.asList(gson.fromJson(answer, Story[].class));
             deliverResult(mCachedStories);
         }
     }
@@ -148,46 +115,8 @@ public class StoriesLoader extends Loader<List<Story>> {
         mRequestQueue.add(stringRequest);
     }
 
-
-    /**
-     *
-     * Execute network calls using AsyncTask
-     * Just in case using volley is not allowed
-     */
-    private void executeNetworkCallsUsingAsyncTask() {
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                if (isNetworkConnected()) {
-                    URL url = null;
-                    try {
-                        url = new URL(BASE_URL + mOffset);
-                        HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
-                        connection.connect();
-                        BufferedReader reader = null;
-                        reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                        String answer = reader.readLine();
-                        if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                            processResult(answer);
-                        } else {
-                            processError(answer);
-                        }
-                        connection.disconnect();
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                return null;
-            }
-        }.execute();
-    }
-
-
     @Override
     protected void onForceLoad() {
-         //executeNetworkCallsUsingAsyncTask();
         executeNetworkCallsUsingVolley();
     }
 
