@@ -1,7 +1,6 @@
 package anuragkondeya.com.anuragkondeya.Fragments;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -12,10 +11,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.ImageRequest;
-import com.android.volley.toolbox.Volley;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import java.util.List;
 
@@ -74,7 +71,7 @@ public class HeadLineListAdaper extends ArrayAdapter<Story> {
                 mLoadDataNotifier.notifyLoadData();
         }
         ViewHolder viewHolder = null;
-        //View view = null;
+
         /**
          * Recycling views here as find view by id calls are costly
          */
@@ -88,37 +85,12 @@ public class HeadLineListAdaper extends ArrayAdapter<Story> {
         viewHolder.headlineTextView.setText(story.headline);
         final ImageView thumbnailView = viewHolder.thumbnailImageView;
         thumbnailView.setImageDrawable(null);
-        final BitmapCache bitmapCache = BitmapCache.getInstance();
-        final Bitmap bitmap = bitmapCache.getBitmapFromMemCache(story.id);
-        if (null != bitmap) {
-            thumbnailView.setImageBitmap(bitmap);
-        } else {
 
-            // Can use glide here for better user experience
-            ImageRequest imageRequest = new ImageRequest(
-                    story.image,
-                    new Response.Listener<Bitmap>() {
-                        @Override
-                        public void onResponse(Bitmap response) {
-                            bitmapCache.addBitmapToMemoryCache(story.id, response);
-                            thumbnailView.setImageBitmap(response);
-                        }
-                    },
-                    0,
-                    0,
-                    ImageView.ScaleType.FIT_XY,
-                    Bitmap.Config.ARGB_8888,
-                    new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            // Do something with error response
-                            error.printStackTrace();
-                        }
-                    }
-            );
-            mRequestQueue = Volley.newRequestQueue(getContext());
-            mRequestQueue.add(imageRequest);
-        }
+        Glide.with(getContext())
+                .load(story.image)
+                .override(150, 150)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .into(thumbnailView);
         return convertView;
     }
 

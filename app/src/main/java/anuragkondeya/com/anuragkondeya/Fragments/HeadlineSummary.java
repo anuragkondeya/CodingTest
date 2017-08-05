@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
+import android.support.v4.view.ViewCompat;
 import android.transition.TransitionInflater;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -114,9 +116,12 @@ public class HeadlineSummary extends Fragment implements
         Bundle extras = new Bundle();
         extras.putParcelable(Constants.KEY_STORY_OBEJCT, story);
         storyViewInstance.setArguments(extras);
+
+        ImageView thumbnail = (ImageView) view.findViewById(R.id.thumbnail);
+
         getFragmentManager()
                 .beginTransaction()
-                //.addSharedElement(imageView, ViewCompat.getTransitionName(imageView))
+                .addSharedElement(thumbnail, ViewCompat.getTransitionName(thumbnail))
                 .replace(R.id.headlines_frame_container, storyViewInstance)
                 .addToBackStack(null)
                 .commit();
